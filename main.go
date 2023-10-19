@@ -10,22 +10,15 @@ import (
 	"github.com/coderunne/creator/pkg/utility"
 )
 
-const (
-	testnet = "0xff3cc47c5a45be64"
-	emulator = "0xf8d6e0586b0a20c7"
-
-	testnet_pkey = "5c01f0c3021eb7d1c8406771f58dab5715b0e15afb910d5e07e7f676ed255a41"
-	emulator_pkey = "aa00166704951ce7ff6921ee0978f6ff496b1ff2a38cbcc090158c7cb8559945"
-)
-
-// NOTE: All new account must be created by an existing account on any of the network.
+// NOTE: All new account must be created by an existing account on any of the networks.
+// Testnet account must be funded
 
 func main() {
 	// initialize context
 	ctx := context.Background()
 
 	// Connect To Flow Host (EmulatorHost|TestnetHost|MainnetHost)
-	client, err := http.NewClient(http.TestnetHost)
+	client, err := http.NewClient(utility.Host)
 	utility.Handle(err)
 
 	// Get Latest Block
@@ -46,7 +39,7 @@ func main() {
 		SetWeight(flow.AccountKeyWeightThreshold)
 
 	// Get Account
-	account, err := client.GetAccount(ctx, flow.HexToAddress(testnet))
+	account, err := client.GetAccount(ctx, flow.HexToAddress(utility.NetworkKey))
 	utility.Handle(err)
 
 	// Retrive address and keys from account
@@ -54,7 +47,7 @@ func main() {
 	sacckey := account.Keys[0]
 
 	// Decode the Private key
-	privateKey, err := crypto.DecodePrivateKeyHex(crypto.ECDSA_P256, testnet_pkey)
+	privateKey, err := crypto.DecodePrivateKeyHex(crypto.ECDSA_P256, utility.NetworkPrivateKey)
 	utility.Handle(err)
 
 	// Get the signer from the private key
@@ -90,8 +83,11 @@ func main() {
 		}
 	}
 
+	// Save to file
+	utility.SaveFile(myAddress.String(), mnemonic)
+	
 	// Print results to the console
-	fmt.Printf("===== Account Created ===== \n Mnemonic Seed: %v \n Address: %v \n", mnemonic, address)
+	fmt.Printf("===== Account Created ===== \n Mnemonic Seed: %v \n Address: %v \n", mnemonic, myAddress)
 
 	// Print transaction id
 	fmt.Printf("===== Transaction ID ===== \n %v \n", accountTx.ID())
